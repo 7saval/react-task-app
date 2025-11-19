@@ -60,6 +60,7 @@ const SideForm: FC<TSideFormProps> = ({
         onChange={handleChange}
         onBlur={handleOnBlur}
       />
+      {/* onClick 대신 onMouseDown을 사용하여 onBlur보다 먼저 이벤트를 처리한다. */}
       <FiCheck className={icon} onMouseDown={handleClick}/>
     </div>
   )
