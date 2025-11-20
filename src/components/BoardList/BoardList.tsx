@@ -9,7 +9,6 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/
 import app from '../../firebase';
 import { clearUser, setUser } from '../../store/slices/userSlice';
 import { useAuth } from '../../hooks/useAuth';
-import { sign } from 'crypto';
 
 type TBoardListProps = {
   activeBoardId : string;
@@ -96,7 +95,7 @@ const BoardList = ({
     <div className={addSection}>
       {
         isFormOpen ?
-        <SideForm inputRef={inputRef} setIsFormOpen={setIsFormOpen} />
+        <SideForm setIsFormOpen={setIsFormOpen} />
         : 
         <FiPlusCircle className={addButton} onClick={handleClick} />
       }
