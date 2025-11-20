@@ -5,9 +5,10 @@ import LIstsContainer from './components/ListsContainer/LIstsContainer';
 import { useTypeDispatch, useTypedSelector } from './hooks/redux';
 import EditModal from './components/EditModal/EditModal';
 import LoggerModal from './components/LoggerModal/LoggerModal';
-import { deleteBoard } from './store/slices/boardsSlice';
+import { deleteBoard, sort } from './store/slices/boardsSlice';
 import {v4 as uuidv4 } from 'uuid';
 import { addLog } from './store/slices/loggerSlice';
+import { DragDropContext } from '@hello-pangea/dnd';
 
 function App() {
   const dispatch = useTypeDispatch();
@@ -21,6 +22,7 @@ function App() {
   
   const lists = getActiveBoard?.lists;
 
+  // 게시판 삭제하기
   const handleDeleteBoard = () => {
     if(boards.length > 1){
       dispatch(deleteBoard({boardId: getActiveBoard.boardId})); // 게시판 삭제
@@ -53,6 +55,40 @@ function App() {
     }
   }
 
+  const handleDragEnd = (result: any) => {
+    console.log(result);
+    const { destination, source, draggableId } = result;
+    console.log('lists', lists);
+    const sourceList = lists.filter(list => list.listId === source.droppableId)[0];
+    console.log('sourceList', sourceList);
+    // const destinationList = lists.filter(list => list.listId === destination.droppableId)[0];
+    // if (!result.destination) return;
+    dispatch(
+      sort({
+        boardIndex: boards.findIndex(board => board.boardId === activeBoardId),
+        droppableIdStart: source.droppableId,
+        droppableIdEnd: destination.droppableId,
+        droppableIndexStart: source.index,
+        droppableIndexEnd: destination.index,
+        draggableId
+      })
+    )
+
+    // 로그 생성
+    dispatch(
+      addLog({
+        logId: uuidv4(),
+        logMessage: `
+        리스트 "${sourceList.listName}"에서
+        리스트 "${lists.filter(list => list.listId === destination.droppableId)[0].listName}"으로 
+        ${sourceList.tasks.filter(task => task.taskId === draggableId)[0].taskName}을 옮김.
+        `,
+        logAuthor: 'admin',
+        logTimestamp: String(Date.now())
+      })
+    )
+  }
+
   return (
     <div className={appContainer}>
       {isLoggerOpen ? <LoggerModal setIsLoggerOpen={setIsLoggerOpen} /> : null}
@@ -63,7 +99,9 @@ function App() {
         setActiveBoardId={setActiveBoardId} 
         />
       <div className={board}>
-        <LIstsContainer lists={lists} boardId={getActiveBoard.boardId} />
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <LIstsContainer lists={lists} boardId={getActiveBoard.boardId} />
+        </DragDropContext>
       </div>
       <div className={buttons}>
         <button className={deleteBoardButton} onClick={handleDeleteBoard}>
